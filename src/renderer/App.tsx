@@ -1,12 +1,28 @@
+import { useState } from 'react'
+import { Sidebar } from './components/Sidebar'
+import { Settings } from './components/Settings'
+
+export type View =
+  | { type: 'empty' }
+  | { type: 'settings' }
+  | { type: 'addSource' }
+  | { type: 'sourceDetail'; sourceId: number }
+
 export function App(): JSX.Element {
+  const [view, setView] = useState<View>({ type: 'empty' })
+
   return (
     <div className="flex h-screen">
-      <div className="w-64 bg-neutral-900 border-r border-neutral-800 p-4">
-        <h1 className="text-lg font-semibold">Tsunagu</h1>
-      </div>
-      <div className="flex-1 p-6">
-        <p className="text-neutral-400">Select a source or add a new one.</p>
-      </div>
+      <Sidebar
+        onNavigate={setView}
+        selectedSourceId={view.type === 'sourceDetail' ? view.sourceId : null}
+      />
+      <main className="flex-1 p-6 overflow-y-auto">
+        {view.type === 'settings' && <Settings />}
+        {view.type === 'empty' && (
+          <p className="text-neutral-400">Select a source or add a new one.</p>
+        )}
+      </main>
     </div>
   )
 }
