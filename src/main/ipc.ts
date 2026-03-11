@@ -2,6 +2,7 @@ import { ipcMain, app, type BrowserWindow } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { Database } from './database'
+import { PocketsmithClient } from './pocketsmith'
 
 export function registerIpcHandlers(db: Database, _mainWindow: BrowserWindow): void {
   // Settings
@@ -58,9 +59,17 @@ export function registerIpcHandlers(db: Database, _mainWindow: BrowserWindow): v
     fs.writeFileSync(settingsPath, JSON.stringify(config, null, 2))
   })
 
-  // Pocketsmith (stubbed — implemented in Task 7)
-  ipcMain.handle('pocketsmith:accounts', () => {
-    return []
+  // Pocketsmith
+  ipcMain.handle('pocketsmith:accounts', async () => {
+    const apiKey = db.getSetting('pocketsmithApiKey')
+    if (!apiKey) return []
+    try {
+      const client = new PocketsmithClient(apiKey)
+      const user = await client.getCurrentUser()
+      return await client.getTransactionAccounts(user.id)
+    } catch {
+      return []
+    }
   })
 
   // Sync (stubbed — implemented in Task 9)
