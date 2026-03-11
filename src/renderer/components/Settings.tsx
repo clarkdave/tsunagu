@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-export function Settings(): JSX.Element {
+export function Settings() {
   const [apiKey, setApiKey] = useState('')
   const [hasApiKey, setHasApiKey] = useState(false)
   const [dataDir, setDataDir] = useState('')

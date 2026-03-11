@@ -12,7 +12,7 @@ const SOURCE_TYPES: { value: SourceType; label: string }[] = [
   { value: 'paypay', label: 'PayPay' },
 ]
 
-export function AddSource({ onCreated }: Props): JSX.Element {
+export function AddSource({ onCreated }: Props) {
   const [step, setStep] = useState<1 | 2>(1)
   const [selectedType, setSelectedType] = useState<SourceType | null>(null)
   const [name, setName] = useState('')

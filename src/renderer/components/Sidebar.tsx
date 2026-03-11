@@ -7,7 +7,7 @@ interface Props {
   selectedSourceId: number | null
 }
 
-export function Sidebar({ onNavigate, selectedSourceId }: Props): JSX.Element {
+export function Sidebar({ onNavigate, selectedSourceId }: Props) {
   const [sources, setSources] = useState<Source[]>([])
 
   useEffect(() => {

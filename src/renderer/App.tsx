@@ -11,7 +11,7 @@ export type View =
   | { type: 'addSource' }
   | { type: 'sourceDetail'; sourceId: number }
 
-export function App(): JSX.Element {
+export function App() {
   const [view, setView] = useState<View>({ type: 'empty' })
   const [passwordPrompt, setPasswordPrompt] = useState<{
     label: string

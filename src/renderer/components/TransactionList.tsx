@@ -4,7 +4,7 @@ interface Props {
   transactions: Transaction[]
 }
 
-export function TransactionList({ transactions }: Props): JSX.Element {
+export function TransactionList({ transactions }: Props) {
   if (transactions.length === 0) {
     return <p className="text-sm text-neutral-500 py-4">No transactions yet. Run a sync to fetch them.</p>
   }

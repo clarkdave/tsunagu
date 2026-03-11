@@ -6,7 +6,7 @@ interface Props {
   onCancel: () => void
 }
 
-export function PasswordPrompt({ label, onSubmit, onCancel }: Props): JSX.Element {
+export function PasswordPrompt({ label, onSubmit, onCancel }: Props) {
   const [password, setPassword] = useState('')
 
   function handleSubmit(e: React.FormEvent) {

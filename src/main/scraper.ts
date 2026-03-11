@@ -9,10 +9,9 @@ export class Scraper {
     this.view = new WebContentsView()
     this.mainWindow.contentView.addChildView(this.view)
     this.view.setBounds(bounds)
-    this.view.webContents.loadURL(url)
-
     await new Promise<void>((resolve) => {
-      this.view!.webContents.on('did-finish-load', () => resolve())
+      this.view!.webContents.once('did-finish-load', () => resolve())
+      this.view!.webContents.loadURL(url)
     })
 
     return this.view
@@ -26,7 +25,7 @@ export class Scraper {
   async waitForNavigation(): Promise<void> {
     if (!this.view) throw new Error('No scraper view open')
     return new Promise((resolve) => {
-      this.view!.webContents.on('did-finish-load', () => resolve())
+      this.view!.webContents.once('did-finish-load', () => resolve())
     })
   }
 

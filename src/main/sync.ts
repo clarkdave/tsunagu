@@ -79,6 +79,8 @@ export async function runSync(
     }
   } else if (source.pocketsmithAccountId && !options.apiKey) {
     options.onProgress('Warning: No Pocketsmith API key configured, skipping push')
+  } else if (!source.pocketsmithAccountId) {
+    options.onProgress('No Pocketsmith account mapped for this source, skipping push')
   }
 
   options.onProgress('Sync complete')

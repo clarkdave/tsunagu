@@ -6,7 +6,7 @@ interface Props {
   sourceId: number
 }
 
-export function SourceDetail({ sourceId }: Props): JSX.Element {
+export function SourceDetail({ sourceId }: Props) {
   const [source, setSource] = useState<Source | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [syncing, setSyncing] = useState(false)
