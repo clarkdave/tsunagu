@@ -3,8 +3,9 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Database } from './database'
 import { PocketsmithClient } from './pocketsmith'
+import { runSync } from './sync'
 
-export function registerIpcHandlers(db: Database, _mainWindow: BrowserWindow): void {
+export function registerIpcHandlers(db: Database, mainWindow: BrowserWindow): void {
   // Settings
   ipcMain.handle('settings:get', (_event, key: string) => {
     return db.getSetting(key)
@@ -72,8 +73,26 @@ export function registerIpcHandlers(db: Database, _mainWindow: BrowserWindow): v
     }
   })
 
-  // Sync (stubbed — implemented in Task 9)
-  ipcMain.handle('sync:source', () => {
-    return { newTransactions: 0, pushedTransactions: 0, error: 'Not yet implemented' }
+  // Sync
+  ipcMain.handle('sync:source', async (_event, sourceId: number) => {
+    const source = db.getSource(sourceId)
+    if (!source) throw new Error(`Source ${sourceId} not found`)
+
+    const apiKey = db.getSetting('pocketsmithApiKey') ?? undefined
+    const dryRun = db.getSetting('dryRun') === 'true'
+
+    return runSync(db, source, {
+      promptPassword: async (label) => {
+        mainWindow.webContents.send('password:prompt', label)
+        return new Promise((resolve) => {
+          ipcMain.once('password:response', (_e, password: string) => resolve(password))
+        })
+      },
+      onProgress: (message) => {
+        mainWindow.webContents.send('sync:progress', sourceId, { status: 'scraping', message })
+      },
+      dryRun,
+      apiKey
+    })
   })
 }
