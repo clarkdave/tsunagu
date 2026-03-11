@@ -1,9 +1,7 @@
-export {}
+import type { TsunaguAPI } from '../shared/types'
 
 declare global {
   interface Window {
-    api: {
-      ping: () => string
-    }
+    api: TsunaguAPI
   }
 }
