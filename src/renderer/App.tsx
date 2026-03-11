@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { Settings } from './components/Settings'
 import { AddSource } from './components/AddSource'
 import { SourceDetail } from './components/SourceDetail'
+import { PasswordPrompt } from './components/PasswordPrompt'
 
 export type View =
   | { type: 'empty' }
@@ -12,6 +13,29 @@ export type View =
 
 export function App(): JSX.Element {
   const [view, setView] = useState<View>({ type: 'empty' })
+  const [passwordPrompt, setPasswordPrompt] = useState<{
+    label: string
+    resolve: (password: string) => void
+  } | null>(null)
+
+  useEffect(() => {
+    const cleanup = window.api.onPasswordPrompt(async (label) => {
+      return new Promise<string>((resolve) => {
+        setPasswordPrompt({ label, resolve })
+      })
+    })
+    return cleanup
+  }, [])
+
+  function handlePasswordSubmit(password: string) {
+    passwordPrompt?.resolve(password)
+    setPasswordPrompt(null)
+  }
+
+  function handlePasswordCancel() {
+    passwordPrompt?.resolve('')
+    setPasswordPrompt(null)
+  }
 
   return (
     <div className="flex h-screen">
@@ -29,6 +53,13 @@ export function App(): JSX.Element {
           <p className="text-neutral-400">Select a source or add a new one.</p>
         )}
       </main>
+      {passwordPrompt && (
+        <PasswordPrompt
+          label={passwordPrompt.label}
+          onSubmit={handlePasswordSubmit}
+          onCancel={handlePasswordCancel}
+        />
+      )}
     </div>
   )
 }
