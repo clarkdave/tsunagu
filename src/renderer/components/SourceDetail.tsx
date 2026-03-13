@@ -14,6 +14,8 @@ export function SourceDetail({ sourceId }: Props) {
   const [lastResult, setLastResult] = useState<SyncResult | null>(null)
 
   useEffect(() => {
+    setLastResult(null)
+    setProgress(null)
     loadData()
 
     const cleanup = window.api.onSyncProgress((id, prog) => {

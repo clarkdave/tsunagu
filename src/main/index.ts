@@ -32,9 +32,10 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 500,
     titleBarStyle: 'hiddenInset',
+    icon: path.join(__dirname, '../../resources/icon.png'),
     backgroundColor: '#0f0f0f',
     webPreferences: {
-      preload: path.join(__dirname, '../preload/index.js'),
+      preload: path.join(__dirname, '../preload/index.cjs'),
       nodeIntegration: false,
       contextIsolation: true
     }

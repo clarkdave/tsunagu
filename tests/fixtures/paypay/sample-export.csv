@@ -1,4 +1,11 @@
-取引日時,取引内容,取引金額,取引後残高
-2026-01-15 10:30:00,セブンイレブン,-350,9650
-2026-01-14 18:45:00,ローソン,-210,10000
-2026-01-10 12:00:00,チャージ,10000,10210
+Date & Time,Amount Outgoing (Yen),Amount Incoming (Yen),Amount Outgoing Overseas,Currency,Exchange Rate (Yen),Country Paid In,Transaction Type,Business Name,Method,Payment Option,User,Transaction ID
+2026/03/11 10:20:04,501,-,-,-,-,-,Payment,スターバックス コーヒー - 三宮磯上通店,PayPay Balance,-,-,04931021063461429249
+2026/03/10 15:06:41,-,491,-,-,-,-,Refund,Amazon.co.jp,PayPay Balance,-,-,04930426614217629700
+2026/03/09 22:26:05,"5,990",-,-,-,-,-,Payment,Amazon.co.jp,PayPay Balance,-,-,04929910908904939522
+2026/03/09 22:25:47,-,"20,000",-,-,-,-,Top-Up,PayPay,ゆうちょ銀行 *****61,-,-,02218762466344108048
+2026/03/04 12:28:09,"6,780",-,-,-,-,-,Payment,Joshin - ジョーシン三宮1ばん館,PayPay Balance,-,-,04925891876076560397
+2026/03/01 15:17:52,969,-,-,-,-,-,Payment,セブン-イレブン - 神戸中央磯辺通,PayPay Balance,-,-,04923752836335140876
+2026/02/27 11:31:01,"1,810",-,-,-,-,-,Payment,日本調剤 - 日本調剤　ポートアイランド薬局,PayPay Balance,-,-,04922151578037403649
+2026/01/28 02:06:26,-,6,-,-,-,-,"Points, Balance Earned",Google,PayPay Point,-,-,04896056834210381825
+2025/12/04 09:59:40,"5,718",-,-,-,-,-,Bill Payment,大阪ガス,PayPay Balance,-,-,04859020025539297281
+2025/12/02 20:00:17,-,"7,000",-,-,-,JP,Money Received,サビナ,PayPay Balance,-,-,02146696960968245248

@@ -2,6 +2,7 @@ import type { Source, SyncResult, ParsedTransaction } from '../shared/types'
 import type { Database } from './database'
 import { getProvider } from './providers/registry'
 import { PocketsmithClient } from './pocketsmith'
+import { Scraper } from './scraper'
 
 interface SyncOptions {
   promptPassword: (label: string) => Promise<string>
@@ -25,7 +26,9 @@ export async function runSync(
   let providerResult: { transactions: ParsedTransaction[]; balance?: number }
   let syncError: string | undefined
   try {
+    const scraper = source.type !== 'paypay' ? new Scraper() : undefined
     providerResult = await provider.sync(source.config, {
+      scraper,
       promptPassword: options.promptPassword,
       onProgress: options.onProgress
     })

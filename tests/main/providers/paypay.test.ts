@@ -5,53 +5,109 @@ import path from 'node:path'
 
 describe('PayPay Provider', () => {
   describe('parsePayPayCSV', () => {
-    it('parses a CSV string into transactions', () => {
-      const csv = readFileSync(
-        path.join(__dirname, '../../fixtures/paypay/sample-export.csv'),
-        'utf-8'
-      )
+    const csv = readFileSync(
+      path.join(__dirname, '../../fixtures/paypay/sample-export.csv'),
+      'utf-8'
+    )
 
+    it('parses transactions from real CSV format', () => {
       const result = parsePayPayCSV(csv)
-      expect(result.transactions).toHaveLength(3)
+      // 10 rows minus 1 Points row = 9 transactions
+      expect(result.transactions).toHaveLength(9)
+    })
 
+    it('parses a simple payment', () => {
+      const result = parsePayPayCSV(csv)
       expect(result.transactions[0]).toEqual({
-        externalId: expect.any(String),
-        date: '2026-01-15',
-        amount: -350,
-        description: 'セブンイレブン',
-        rawData: { datetime: '2026-01-15 10:30:00', balanceAfter: 9650 }
-      })
-
-      expect(result.transactions[2]).toEqual({
-        externalId: expect.any(String),
-        date: '2026-01-10',
-        amount: 10000,
-        description: 'チャージ',
-        rawData: { datetime: '2026-01-10 12:00:00', balanceAfter: 10210 }
+        externalId: '04931021063461429249',
+        date: '2026-03-11',
+        amount: -501,
+        description: 'スターバックス コーヒー - 三宮磯上通店',
+        rawData: {
+          datetime: '2026/03/11 10:20:04',
+          transactionType: 'Payment',
+          businessName: 'スターバックス コーヒー - 三宮磯上通店',
+          method: 'PayPay Balance'
+        }
       })
     })
 
-    it('generates deterministic external IDs', () => {
-      const csv = '取引日時,取引内容,取引金額,取引後残高\n2026-01-15 10:30:00,Store,-350,9650'
-      const result1 = parsePayPayCSV(csv)
-      const result2 = parsePayPayCSV(csv)
-      expect(result1.transactions[0].externalId).toBe(result2.transactions[0].externalId)
-    })
-
-    it('extracts balance from latest transaction', () => {
-      const csv = readFileSync(
-        path.join(__dirname, '../../fixtures/paypay/sample-export.csv'),
-        'utf-8'
-      )
+    it('parses a refund as positive amount', () => {
       const result = parsePayPayCSV(csv)
-      expect(result.balance).toBe(9650)
+      const refund = result.transactions.find((t) => t.amount > 0 && t.description === 'Amazon.co.jp')
+      expect(refund).toEqual({
+        externalId: '04930426614217629700',
+        date: '2026-03-10',
+        amount: 491,
+        description: 'Amazon.co.jp',
+        rawData: expect.objectContaining({ transactionType: 'Refund' })
+      })
+    })
+
+    it('parses amounts with commas', () => {
+      const result = parsePayPayCSV(csv)
+      const amazon = result.transactions.find(
+        (t) => t.externalId === '04929910908904939522'
+      )
+      expect(amazon!.amount).toBe(-5990)
+    })
+
+    it('uses Method as description for Top-Up', () => {
+      const result = parsePayPayCSV(csv)
+      const topUp = result.transactions.find(
+        (t) => t.rawData?.transactionType === 'Top-Up'
+      )
+      expect(topUp).toEqual({
+        externalId: '02218762466344108048',
+        date: '2026-03-09',
+        amount: 20000,
+        description: 'ゆうちょ銀行 *****61',
+        rawData: expect.objectContaining({ transactionType: 'Top-Up' })
+      })
+    })
+
+    it('filters out Points transactions', () => {
+      const result = parsePayPayCSV(csv)
+      const points = result.transactions.filter(
+        (t) => (t.rawData as Record<string, unknown>)?.transactionType?.toString().includes('Points')
+      )
+      expect(points).toHaveLength(0)
+    })
+
+    it('parses Bill Payment transactions', () => {
+      const result = parsePayPayCSV(csv)
+      const bill = result.transactions.find(
+        (t) => t.rawData?.transactionType === 'Bill Payment'
+      )
+      expect(bill).toEqual({
+        externalId: '04859020025539297281',
+        date: '2025-12-04',
+        amount: -5718,
+        description: '大阪ガス',
+        rawData: expect.objectContaining({ transactionType: 'Bill Payment' })
+      })
+    })
+
+    it('parses Money Received transactions', () => {
+      const result = parsePayPayCSV(csv)
+      const received = result.transactions.find(
+        (t) => t.rawData?.transactionType === 'Money Received'
+      )
+      expect(received!.amount).toBe(7000)
+      expect(received!.description).toBe('サビナ')
     })
 
     it('handles empty CSV', () => {
-      const csv = '取引日時,取引内容,取引金額,取引後残高\n'
-      const result = parsePayPayCSV(csv)
+      const header = 'Date & Time,Amount Outgoing (Yen),Amount Incoming (Yen),Amount Outgoing Overseas,Currency,Exchange Rate (Yen),Country Paid In,Transaction Type,Business Name,Method,Payment Option,User,Transaction ID\n'
+      const result = parsePayPayCSV(header)
       expect(result.transactions).toEqual([])
-      expect(result.balance).toBeUndefined()
+    })
+
+    it('uses transaction ID for stable external IDs', () => {
+      const result1 = parsePayPayCSV(csv)
+      const result2 = parsePayPayCSV(csv)
+      expect(result1.transactions[0].externalId).toBe(result2.transactions[0].externalId)
+      expect(result1.transactions[0].externalId).toBe('04931021063461429249')
     })
   })
 
@@ -68,8 +124,7 @@ describe('PayPay Provider', () => {
         }
       )
 
-      expect(result.transactions.length).toBeGreaterThan(0)
-      expect(result.balance).toBe(9650)
+      expect(result.transactions.length).toBe(9)
     })
   })
 })

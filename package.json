@@ -4,18 +4,19 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "electron-vite dev",
-    "build": "electron-vite build",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev": "electron-rebuild && electron-vite dev",
+    "build": "electron-rebuild && electron-vite build",
+    "test": "npm rebuild better-sqlite3 && vitest run",
+    "test:watch": "npm rebuild better-sqlite3 && vitest"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@tailwindcss/vite": "^4.2.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
-    "electron": "^41.0.0",
+    "electron": "40",
     "electron-builder": "^26.8.1",
     "electron-vite": "^5.0.0",
     "tailwindcss": "^4.2.1",
@@ -26,5 +27,18 @@
     "better-sqlite3": "^12.6.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
+  },
+  "build": {
+    "appId": "com.tsunagu.app",
+    "productName": "Tsunagu",
+    "mac": {
+      "icon": "resources/icon.icns"
+    },
+    "linux": {
+      "icon": "resources/icon.png"
+    },
+    "win": {
+      "icon": "resources/icon.png"
+    }
   }
 }

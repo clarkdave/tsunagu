@@ -39,6 +39,7 @@ export function App() {
 
   return (
     <div className="flex h-screen">
+      <div className="fixed top-0 left-0 right-0 h-10 z-40" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties} />
       <Sidebar
         onNavigate={setView}
         selectedSourceId={view.type === 'sourceDetail' ? view.sourceId : null}

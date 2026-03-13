@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { SourceConfig, ParsedTransaction } from '../../shared/types'
@@ -6,7 +5,34 @@ import type { Provider, ProviderSyncResult, SyncContext } from './types'
 
 interface PayPayParseResult {
   transactions: ParsedTransaction[]
-  balance?: number
+}
+
+/** Parse a CSV line respecting quoted fields (handles commas inside quotes). */
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (char === '"') {
+      inQuotes = !inQuotes
+    } else if (char === ',' && !inQuotes) {
+      fields.push(current)
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  fields.push(current)
+  return fields
+}
+
+/** Parse a yen amount string like "5,990" or "501" into a number. Returns null for "-". */
+function parseYenAmount(value: string): number | null {
+  const trimmed = value.trim()
+  if (trimmed === '-' || trimmed === '') return null
+  return Number(trimmed.replace(/,/g, ''))
 }
 
 export function parsePayPayCSV(csv: string): PayPayParseResult {
@@ -14,38 +40,58 @@ export function parsePayPayCSV(csv: string): PayPayParseResult {
   if (lines.length <= 1) return { transactions: [] }
 
   const transactions: ParsedTransaction[] = []
-  let latestBalance: number | undefined
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim()
     if (!line) continue
 
-    const parts = line.split(',')
-    if (parts.length < 4) continue
+    const fields = parseCSVLine(line)
+    if (fields.length < 13) continue
 
-    const datetime = parts[0]
-    const description = parts[1]
-    const amount = Number(parts[2])
-    const balanceAfter = Number(parts[3])
-    const date = datetime.split(' ')[0]
+    const datetime = fields[0]         // "2026/03/11 10:20:04"
+    const amountOutgoing = fields[1]   // "501" or "5,990" or "-"
+    const amountIncoming = fields[2]   // "491" or "20,000" or "-"
+    const transactionType = fields[7]  // "Payment", "Top-Up", "Points, Balance Earned", etc.
+    const businessName = fields[8]     // "スターバックス コーヒー - 三宮磯上通店"
+    const method = fields[9]           // "ゆうちょ銀行 *****61"
+    const transactionId = fields[12]   // "04931021063461429249"
 
-    const hash = createHash('sha256')
-      .update(`${datetime}|${description}|${amount}`)
-      .digest('hex')
-      .slice(0, 16)
+    // Skip Points transactions
+    if (transactionType.includes('Points')) continue
+
+    // Determine amount: outgoing is negative, incoming is positive
+    const outgoing = parseYenAmount(amountOutgoing)
+    const incoming = parseYenAmount(amountIncoming)
+    let amount: number
+    if (outgoing !== null) {
+      amount = -outgoing
+    } else if (incoming !== null) {
+      amount = incoming
+    } else {
+      continue // No amount — skip
+    }
+
+    // Description: use Method for Top-Up, Business Name otherwise
+    const description = transactionType === 'Top-Up' ? method : businessName
+
+    // Date: convert "2026/03/11 10:20:04" to "2026-03-11"
+    const date = datetime.split(' ')[0].replace(/\//g, '-')
 
     transactions.push({
-      externalId: `paypay-${hash}`,
+      externalId: transactionId,
       date,
       amount,
       description,
-      rawData: { datetime, balanceAfter }
+      rawData: {
+        datetime,
+        transactionType,
+        businessName,
+        method
+      }
     })
-
-    if (i === 1) latestBalance = balanceAfter
   }
 
-  return { transactions, balance: latestBalance }
+  return { transactions }
 }
 
 export class PayPayProvider implements Provider {
@@ -62,21 +108,16 @@ export class PayPayProvider implements Provider {
       .sort()
 
     const allTransactions: ParsedTransaction[] = []
-    let latestBalance: number | undefined
 
     for (const file of files) {
       context.onProgress(`Reading ${file}...`)
       const csv = readFileSync(path.join(dir, file), 'utf-8')
       const result = parsePayPayCSV(csv)
       allTransactions.push(...result.transactions)
-
-      if (result.balance !== undefined) {
-        latestBalance = result.balance
-      }
     }
 
     context.onProgress(`Found ${allTransactions.length} transactions in ${files.length} files`)
 
-    return { transactions: allTransactions, balance: latestBalance }
+    return { transactions: allTransactions }
   }
 }

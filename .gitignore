@@ -1,4 +1,7 @@
+.claude/settings.local.json
+.cursor/
 .superpowers/
 node_modules/
 dist/
 out/
+tmp/
