@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 export function Settings() {
   const [apiKey, setApiKey] = useState('')
   const [hasApiKey, setHasApiKey] = useState(false)
+  const [apiKeyError, setApiKeyError] = useState('')
+  const [savingKey, setSavingKey] = useState(false)
   const [dataDir, setDataDir] = useState('')
   const [dryRun, setDryRun] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -23,10 +25,20 @@ export function Settings() {
 
   async function saveApiKey() {
     if (!apiKey.trim()) return
-    await window.api.setSetting('pocketsmithApiKey', apiKey.trim())
-    setHasApiKey(true)
-    setApiKey('')
-    flash()
+    setSavingKey(true)
+    setApiKeyError('')
+    try {
+      const { userId } = await window.api.validatePocketsmithKey(apiKey.trim())
+      await window.api.setSetting('pocketsmithApiKey', apiKey.trim())
+      await window.api.setSetting('pocketsmithUserId', String(userId))
+      setHasApiKey(true)
+      setApiKey('')
+      flash()
+    } catch (err: any) {
+      setApiKeyError(err?.message ?? 'Failed to validate API key')
+    } finally {
+      setSavingKey(false)
+    }
   }
 
   async function saveDataDir() {
@@ -68,21 +80,27 @@ export function Settings() {
             </button>
           </div>
         ) : (
-          <div className="flex gap-2">
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter API key"
-              className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-3 py-1.5 text-sm"
-            />
-            <button
-              onClick={saveApiKey}
-              className="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-sm"
-            >
-              Save
-            </button>
-          </div>
+          <>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={apiKey}
+                onChange={(e) => { setApiKey(e.target.value); setApiKeyError('') }}
+                placeholder="Enter API key"
+                className="flex-1 bg-neutral-800 border border-neutral-700 rounded px-3 py-1.5 text-sm"
+              />
+              <button
+                onClick={saveApiKey}
+                disabled={savingKey}
+                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-3 py-1.5 rounded text-sm"
+              >
+                {savingKey ? 'Validating...' : 'Save'}
+              </button>
+            </div>
+            {apiKeyError && (
+              <p className="mt-1 text-sm text-red-400">{apiKeyError}</p>
+            )}
+          </>
         )}
       </section>
 

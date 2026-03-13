@@ -61,13 +61,19 @@ export function registerIpcHandlers(db: Database, mainWindow: BrowserWindow): vo
   })
 
   // Pocketsmith
+  ipcMain.handle('pocketsmith:validateKey', async (_event, apiKey: string) => {
+    const client = new PocketsmithClient(apiKey)
+    const user = await client.getCurrentUser()
+    return { userId: user.id, name: user.name }
+  })
+
   ipcMain.handle('pocketsmith:accounts', async () => {
     const apiKey = db.getSetting('pocketsmithApiKey')
-    if (!apiKey) return []
+    const userId = db.getSetting('pocketsmithUserId')
+    if (!apiKey || !userId) return []
     try {
       const client = new PocketsmithClient(apiKey)
-      const user = await client.getCurrentUser()
-      return await client.getTransactionAccounts(user.id)
+      return await client.getTransactionAccounts(Number(userId))
     } catch {
       return []
     }

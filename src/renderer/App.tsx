@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar'
 import { Settings } from './components/Settings'
 import { AddSource } from './components/AddSource'
 import { SourceDetail } from './components/SourceDetail'
+import { SourceSettings } from './components/SourceSettings'
 import { PasswordPrompt } from './components/PasswordPrompt'
 
 export type View =
@@ -10,6 +11,7 @@ export type View =
   | { type: 'settings' }
   | { type: 'addSource' }
   | { type: 'sourceDetail'; sourceId: number }
+  | { type: 'sourceSettings'; sourceId: number }
 
 export function App() {
   const [view, setView] = useState<View>({ type: 'empty' })
@@ -42,14 +44,20 @@ export function App() {
       <div className="fixed top-0 left-0 right-0 h-10 z-40" style={{ WebkitAppRegion: 'drag' } as React.CSSProperties} />
       <Sidebar
         onNavigate={setView}
-        selectedSourceId={view.type === 'sourceDetail' ? view.sourceId : null}
+        selectedSourceId={view.type === 'sourceDetail' || view.type === 'sourceSettings' ? view.sourceId : null}
       />
       <main className="flex-1 p-6 overflow-y-auto">
         {view.type === 'settings' && <Settings />}
         {view.type === 'addSource' && (
           <AddSource onCreated={(id) => setView({ type: 'sourceDetail', sourceId: id })} />
         )}
-        {view.type === 'sourceDetail' && <SourceDetail sourceId={view.sourceId} />}
+        {view.type === 'sourceDetail' && <SourceDetail sourceId={view.sourceId} onNavigate={setView} />}
+        {view.type === 'sourceSettings' && (
+          <SourceSettings
+            sourceId={view.sourceId}
+            onBack={() => setView({ type: 'sourceDetail', sourceId: view.sourceId })}
+          />
+        )}
         {view.type === 'empty' && (
           <p className="text-neutral-400">Select a source or add a new one.</p>
         )}

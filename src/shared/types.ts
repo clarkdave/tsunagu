@@ -27,6 +27,7 @@ export interface Transaction {
   description: string
   rawData: string | null  // JSON
   pocketsmithPushedAt: string | null
+  pocketsmithTransactionId: number | null
   createdAt: string
 }
 
@@ -51,7 +52,7 @@ export interface SyncResult {
 
 export interface PocketsmithAccount {
   id: number
-  title: string
+  name: string
   currencyCode: string
 }
 
@@ -75,7 +76,7 @@ export interface TsunaguAPI {
     type: SourceType
     name: string
     config: SourceConfig
-    pocketsmithAccountId?: number
+    pocketsmithAccountId: number
   }): Promise<Source>
   updateSource(id: number, data: {
     name?: string
@@ -88,6 +89,7 @@ export interface TsunaguAPI {
   getTransactions(sourceId: number): Promise<Transaction[]>
 
   // Pocketsmith
+  validatePocketsmithKey(apiKey: string): Promise<{ userId: number; name: string }>
   fetchPocketsmithAccounts(): Promise<PocketsmithAccount[]>
 
   // Sync

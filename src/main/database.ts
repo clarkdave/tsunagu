@@ -27,7 +27,8 @@ const MIGRATIONS = [
     pocketsmith_pushed_at TEXT,
     created_at            TEXT NOT NULL,
     UNIQUE(source_id, external_id)
-  )`
+  )`,
+  `ALTER TABLE transactions ADD COLUMN pocketsmith_transaction_id INTEGER`
 ]
 
 export class Database {
@@ -174,11 +175,11 @@ export class Database {
     return inserted
   }
 
-  markTransactionPushed(id: number): void {
+  markTransactionPushed(id: number, pocketsmithTransactionId: number): void {
     const now = new Date().toISOString()
     this.db.prepare(
-      'UPDATE transactions SET pocketsmith_pushed_at = ? WHERE id = ?'
-    ).run(now, id)
+      'UPDATE transactions SET pocketsmith_pushed_at = ?, pocketsmith_transaction_id = ? WHERE id = ?'
+    ).run(now, pocketsmithTransactionId, id)
   }
 
   // --- Row mapping ---
@@ -206,6 +207,7 @@ export class Database {
       description: row.description,
       rawData: row.raw_data,
       pocketsmithPushedAt: row.pocketsmith_pushed_at,
+      pocketsmithTransactionId: row.pocketsmith_transaction_id,
       createdAt: row.created_at
     }
   }

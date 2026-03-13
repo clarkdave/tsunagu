@@ -15,6 +15,7 @@ const api: TsunaguAPI = {
 
   getTransactions: (sourceId) => ipcRenderer.invoke('transactions:get', sourceId),
 
+  validatePocketsmithKey: (apiKey) => ipcRenderer.invoke('pocketsmith:validateKey', apiKey),
   fetchPocketsmithAccounts: () => ipcRenderer.invoke('pocketsmith:accounts'),
 
   syncSource: (sourceId) => ipcRenderer.invoke('sync:source', sourceId),

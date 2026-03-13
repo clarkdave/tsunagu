@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import type { Source, Transaction, SyncProgress, SyncResult } from '../../shared/types'
+import type { View } from '../App'
 import { TransactionList } from './TransactionList'
 
 interface Props {
   sourceId: number
+  onNavigate: (view: View) => void
 }
 
-export function SourceDetail({ sourceId }: Props) {
+export function SourceDetail({ sourceId, onNavigate }: Props) {
   const [source, setSource] = useState<Source | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [syncing, setSyncing] = useState(false)
@@ -64,13 +66,21 @@ export function SourceDetail({ sourceId }: Props) {
             {source.lastBalance != null && ` · Balance: ¥${source.lastBalance.toLocaleString()}`}
           </p>
         </div>
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-4 py-1.5 rounded text-sm"
-        >
-          {syncing ? 'Syncing...' : 'Sync Now'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onNavigate({ type: 'sourceSettings', sourceId })}
+            className="border border-neutral-700 hover:bg-neutral-800 px-3 py-1.5 rounded text-sm text-neutral-400"
+          >
+            Settings
+          </button>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-4 py-1.5 rounded text-sm"
+          >
+            {syncing ? 'Syncing...' : 'Sync Now'}
+          </button>
+        </div>
       </div>
 
       {progress && (

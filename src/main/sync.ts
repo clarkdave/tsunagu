@@ -57,8 +57,7 @@ export async function runSync(
   // Step 4: Push unpushed transactions to Pocketsmith
   if (source.pocketsmithAccountId && options.apiKey) {
     const client = new PocketsmithClient(options.apiKey, {
-      dryRun: options.dryRun,
-      onLog: (msg) => options.onProgress(msg)
+      dryRun: options.dryRun
     })
 
     const unpushed = db.getUnpushedTransactions(source.id)
@@ -66,13 +65,13 @@ export async function runSync(
 
     for (const tx of unpushed) {
       try {
-        await client.pushTransaction(source.pocketsmithAccountId, {
+        const psTransactionId = await client.pushTransaction(source.pocketsmithAccountId, {
           date: tx.date,
           amount: tx.amount,
           payee: tx.description
         })
-        if (!options.dryRun) {
-          db.markTransactionPushed(tx.id)
+        if (!options.dryRun && psTransactionId) {
+          db.markTransactionPushed(tx.id, psTransactionId)
           pushedTransactions++
         }
       } catch (err) {

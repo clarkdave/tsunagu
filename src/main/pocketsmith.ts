@@ -10,7 +10,6 @@ interface PushTransactionData {
 
 interface PocketsmithOptions {
   dryRun?: boolean
-  onLog?: (message: string) => void
 }
 
 export class PocketsmithClient {
@@ -27,26 +26,27 @@ export class PocketsmithClient {
     const raw: any[] = await this.request('GET', `/users/${userId}/transaction_accounts`)
     return raw.map((a) => ({
       id: a.id,
-      title: a.title,
+      name: a.name,
       currencyCode: a.currency_code
     }))
   }
 
-  async pushTransaction(accountId: number, data: PushTransactionData): Promise<void> {
+  async pushTransaction(accountId: number, data: PushTransactionData): Promise<number | null> {
     const body = {
       payee: data.payee,
       amount: data.amount,
       date: data.date,
-      is_transfer: false
+      is_transfer: false,
+      needs_review: true
     }
 
     if (this.options.dryRun) {
-      const msg = `[DRY RUN] POST /transaction_accounts/${accountId}/transactions ${JSON.stringify(body)}`
-      this.options.onLog?.(msg)
-      return
+      console.log(`[DRY RUN] POST /transaction_accounts/${accountId}/transactions`, body)
+      return null
     }
 
-    await this.request('POST', `/transaction_accounts/${accountId}/transactions`, body)
+    const result = await this.request('POST', `/transaction_accounts/${accountId}/transactions`, body)
+    return result.id
   }
 
   private async request(method: string, path: string, body?: unknown): Promise<any> {

@@ -19,9 +19,13 @@ export function AddSource({ onCreated }: Props) {
   const [credential, setCredential] = useState('')
   const [pocketsmithAccountId, setPocketsmithAccountId] = useState<number | undefined>()
   const [psAccounts, setPsAccounts] = useState<PocketsmithAccount[]>([])
+  const [loadingAccounts, setLoadingAccounts] = useState(true)
 
   useEffect(() => {
-    window.api.fetchPocketsmithAccounts().then(setPsAccounts).catch(() => {})
+    window.api.fetchPocketsmithAccounts()
+      .then(setPsAccounts)
+      .catch(() => {})
+      .finally(() => setLoadingAccounts(false))
   }, [])
 
   function selectType(type: SourceType) {
@@ -50,7 +54,7 @@ export function AddSource({ onCreated }: Props) {
   }
 
   async function save() {
-    if (!selectedType || !name.trim() || !credential.trim()) return
+    if (!selectedType || !name.trim() || !credential.trim() || !pocketsmithAccountId) return
     const source = await window.api.createSource({
       type: selectedType,
       name: name.trim(),
@@ -105,21 +109,29 @@ export function AddSource({ onCreated }: Props) {
           />
         </div>
 
-        {psAccounts.length > 0 && (
-          <div>
-            <label className="block text-sm text-neutral-400 mb-1">Pocketsmith Account</label>
+        <div>
+          <label className="block text-sm text-neutral-400 mb-1">Pocketsmith Transaction Account</label>
+          {loadingAccounts ? (
+            <p className="text-sm text-neutral-500">Loading accounts...</p>
+          ) : psAccounts.length > 0 ? (
             <select
               value={pocketsmithAccountId ?? ''}
               onChange={(e) => setPocketsmithAccountId(e.target.value ? Number(e.target.value) : undefined)}
               className="w-full bg-neutral-800 border border-neutral-700 rounded px-3 py-1.5 text-sm"
             >
-              <option value="">None (map later)</option>
+              <option value="">Select an account...</option>
               {psAccounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.title} ({a.currencyCode})</option>
+                <option key={a.id} value={a.id}>
+                  {a.name} - {a.currencyCode.toUpperCase()}
+                </option>
               ))}
             </select>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm text-neutral-500">
+              Configure your Pocketsmith API key in Settings first.
+            </p>
+          )}
+        </div>
 
         <div className="flex gap-2 pt-2">
           <button onClick={() => setStep(1)} className="text-sm text-neutral-400 hover:text-neutral-300">
