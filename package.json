@@ -3,6 +3,7 @@
   "main": "./out/main/index.js",
   "type": "module",
   "private": true,
+  "version": "0.1.0",
   "scripts": {
     "dev": "electron-rebuild && electron-vite dev",
     "build": "electron-rebuild && electron-vite build",
